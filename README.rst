@@ -4,7 +4,7 @@ This requires IPython 3.
 
 To install::
 
-    pip install disco_lang_kernel
+    pip install disco_lang_kernel/
     python -m disco_lang_kernel.install
 
 To use it, run one of:
