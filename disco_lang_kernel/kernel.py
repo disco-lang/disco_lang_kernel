@@ -107,7 +107,14 @@ class DiscoKernel(Kernel):
             # output.  Also note that the return value from
             # run_command is not needed, because the output was
             # already sent by IREPLWrapper.
-            self.discowrapper.run_command(code.rstrip(), timeout=None)
+            ls = code.rstrip().splitlines(keeplinebreaks=False)
+            if len(ls) == 1:
+                self.discowrapper.run_command(ls[0], timeout=None)
+            else:
+                self.discowrapper.run_command(":{")
+                for l in ls:
+                    self.discowrapper.run_command(l.rstrip(), timeout=None)
+                self.discowrapper.run_command(":}")
         except KeyboardInterrupt:
             self.discowrapper.child.sendintr()
             interrupted = True
