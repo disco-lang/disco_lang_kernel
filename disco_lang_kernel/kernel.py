@@ -107,7 +107,7 @@ class DiscoKernel(Kernel):
             # output.  Also note that the return value from
             # run_command is not needed, because the output was
             # already sent by IREPLWrapper.
-            ls = code.rstrip().splitlines(keeplinebreaks=False)
+            ls = code.rstrip().splitlines()
             if len(ls) == 1:
                 self.discowrapper.run_command(ls[0], timeout=None)
             else:
