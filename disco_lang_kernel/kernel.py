@@ -20,11 +20,12 @@ class IREPLWrapper(replwrap.REPLWrapper):
     :param line_output_callback: a callback method to receive each batch
       of incremental output. It takes one string parameter.
     """
-    def __init__(self, cmd_or_spawn, orig_prompt, prompt_change,
+    def __init__(self, cmd_or_spawn, orig_prompt, contin_prompt, prompt_change,
                  extra_init_cmd=None, line_output_callback=None):
         self.line_output_callback = line_output_callback
         replwrap.REPLWrapper.__init__(self, cmd_or_spawn, orig_prompt,
-                                      prompt_change, extra_init_cmd=extra_init_cmd)
+                                      prompt_change, extra_init_cmd=extra_init_cmd,
+                                      continuation_prompt=contin_prompt)
 
     def _expect_prompt(self, timeout=-1):
         if timeout == None:
@@ -82,9 +83,9 @@ class DiscoKernel(Kernel):
         try:
             child = pexpect.spawn("disco", [], echo=False,
                                   encoding='utf-8', codec_errors='replace')
-            
-            self.discowrapper = IREPLWrapper(child, u'Disco>', None,
-                    line_output_callback=self.process_output)
+
+            self.discowrapper = IREPLWrapper(child, u'Disco>', u'Disco|', None,
+                                             line_output_callback=self.process_output)
         finally:
             signal.signal(signal.SIGINT, sig)
 
@@ -107,7 +108,14 @@ class DiscoKernel(Kernel):
             # output.  Also note that the return value from
             # run_command is not needed, because the output was
             # already sent by IREPLWrapper.
-            self.discowrapper.run_command(code.rstrip(), timeout=None)
+            ls = code.rstrip().splitlines()
+            if len(ls) == 1:
+                self.discowrapper.run_command(ls[0], timeout=None)
+            else:
+                self.discowrapper.run_command("\n".join([":{"] + ls + [":}"]))
+                # for l in ls:
+                #     self.discowrapper.run_command(l.rstrip(), timeout=None)
+                # self.discowrapper.run_command(":}")
         except KeyboardInterrupt:
             self.discowrapper.child.sendintr()
             interrupted = True
